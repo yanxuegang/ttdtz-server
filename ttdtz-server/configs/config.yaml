@@ -1,0 +1,62 @@
+Server:
+  RunMode: debug
+  HttpPort: 8000
+  ReadTimeout: 60
+  WriteTimeout: 60
+App:
+  DefaultPageSize: 10
+  MaxPageSize: 100
+  LogSavePath: storage/logs
+  LogFileName: app
+  LogFileExt: .log
+Wx:
+  AppId: wx7756c4bb1e711e79
+  AppSecret: d625e131569517cc8829cc99ed1154b9
+  ApiPrefix: https://api.weixin.qq.com
+  AuthUrlFormat: "%s/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
+  AccessTokenUrlFormat: "%s/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
+Database:
+  DBConns:
+  - DBType: mysql 
+    Username: root
+    Password: root
+    Host: 127.0.0.1:3306
+    DBName: app_line
+    Charset: utf8
+    ParseTime: True
+    MaxIdleConns: 10
+    MaxOpenConns: 30
+  - DBType: mysql
+    Username: root
+    Password: root
+    Host: 127.0.0.1:3306
+    DBName: app_line_user
+    Charset: utf8
+    ParseTime: True
+    MaxIdleConns: 10
+    MaxOpenConns: 30
+Redis:
+  Cache:
+    Conns:
+    - Name: player_cache_1
+      Host: 0.0.0.0:6379
+      Port: 6379,
+      Password: ""
+      PoolSize: 0
+      PoolTimeout: 0
+      IdleTimeout: 0
+      IdleCheckFrequency: -1
+      Database: 0
+    - Name: player_cache_2
+      Host: 0.0.0.0:6379
+      Port: 6379,
+      Password: ""
+      PoolSize: 0
+      PoolTimeout: 0
+      IdleTimeout: 0
+      IdleCheckFrequency: -1
+      Database: 0
+    Expiration: 7200
+  
+
+  

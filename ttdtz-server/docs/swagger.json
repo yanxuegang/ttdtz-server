@@ -1,0 +1,141 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Golang gin",
+        "title": "突突大挑战",
+        "contact": {},
+        "license": {},
+        "version": "1.0"
+    },
+    "paths": {
+        "/api/v1/login": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "登录",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "name": "cmd",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "password",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "channel",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "open_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功",
+                        "schema": {
+                            "$ref": "#/definitions/login.loginResponseInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "请求错误",
+                        "schema": {
+                            "$ref": "#/definitions/login.err"
+                        }
+                    },
+                    "500": {
+                        "description": "内部错误",
+                        "schema": {
+                            "$ref": "#/definitions/login.err"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "login.err": {
+            "$ref": "#/definitions/login.error"
+        },
+        "login.loginRequestInfo": {
+            "type": "object",
+            "properties": {
+                "cmd": {
+                    "type": "integer"
+                },
+                "params": {
+                    "type": "object",
+                    "$ref": "#/definitions/login.params"
+                }
+            }
+        },
+        "login.loginResponseInfo": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
+                },
+                "open_id": {
+                    "type": "string"
+                },
+                "sign": {
+                    "type": "integer"
+                }
+            }
+        },
+        "login.params": {
+            "type": "object",
+            "properties": {
+                "channel": {
+                    "type": "string"
+                },
+                "open_id": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "login.wxloginRequestInfo": {
+            "type": "object",
+            "properties": {
+                "cmd": {
+                    "type": "integer"
+                },
+                "params": {
+                    "type": "object",
+                    "$ref": "#/definitions/login.params"
+                }
+            }
+        },
+        "login.wxloginResponseInfo": {
+            "type": "object",
+            "properties": {
+                "money": {
+                    "type": "integer"
+                },
+                "open_id": {
+                    "type": "string"
+                },
+                "sign": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

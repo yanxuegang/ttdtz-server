@@ -1,0 +1,90 @@
+definitions:
+  login.err:
+    $ref: '#/definitions/login.error'
+  login.loginRequestInfo:
+    properties:
+      cmd:
+        type: integer
+      params:
+        $ref: '#/definitions/login.params'
+        type: object
+    type: object
+  login.loginResponseInfo:
+    properties:
+      money:
+        type: integer
+      open_id:
+        type: string
+      sign:
+        type: integer
+    type: object
+  login.params:
+    properties:
+      channel:
+        type: string
+      open_id:
+        type: string
+      password:
+        type: string
+      type:
+        type: string
+    type: object
+  login.wxloginRequestInfo:
+    properties:
+      cmd:
+        type: integer
+      params:
+        $ref: '#/definitions/login.params'
+        type: object
+    type: object
+  login.wxloginResponseInfo:
+    properties:
+      money:
+        type: integer
+      open_id:
+        type: string
+      sign:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: Golang gin
+  license: {}
+  title: 突突大挑战
+  version: "1.0"
+paths:
+  /api/v1/login:
+    get:
+      parameters:
+      - in: query
+        name: cmd
+        type: integer
+      - in: query
+        name: password
+        type: string
+      - in: query
+        name: channel
+        type: string
+      - in: query
+        name: open_id
+        type: string
+      - in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/login.loginResponseInfo'
+        "400":
+          description: 请求错误
+          schema:
+            $ref: '#/definitions/login.err'
+        "500":
+          description: 内部错误
+          schema:
+            $ref: '#/definitions/login.err'
+      summary: 登录
+swagger: "2.0"
