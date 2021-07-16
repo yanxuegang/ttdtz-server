@@ -359,7 +359,7 @@ func main() {
 	if err != nil {
 		log.Fatal("NewDBEngine: ", err)
 	}
-	log.Printf("DBs init %+v", DB)
+	log.Printf("DBs init  %+v", DB)
 
 	http.HandleFunc("/adcallback", listenAdHandler)
 	http.HandleFunc("/apicallback", gameServerHandler)
