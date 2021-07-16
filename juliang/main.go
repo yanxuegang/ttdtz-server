@@ -170,7 +170,6 @@ func listenAdHandler(w http.ResponseWriter, req *http.Request) {
 		Mac1:      req.Form.Get("mac1"),
 		Ip:        req.Form.Get("ip"),
 		Ua:        req.Form.Get("ua"),
-
 		// 	Model: req.Form.Get("model"),
 	}
 	//err = DBs["app_line"].Exec("INSERT INTO `translations` VALUES (?, ?, ?)", translation.Imei, translation.Idfa, "").Error
