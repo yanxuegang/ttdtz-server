@@ -29,6 +29,8 @@ type AppSettingS struct {
 type WxSettingS struct {
 	AppId                string
 	AppSecret            string
+	MchId                string
+	WxPayChechUrl        string
 	ApiPrefix            string
 	AuthUrlFormat        string
 	AccessTokenUrlFormat string

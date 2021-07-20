@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 	"ttdtz-server/global"
+	"ttdtz-server/internal/api"
 	"ttdtz-server/internal/models"
 	"ttdtz-server/internal/rmodels"
 	"ttdtz-server/internal/routers"
@@ -29,6 +30,8 @@ func init() {
 	if err != nil {
 		log.Fatalf("init,setupDBEngine err: %v", err)
 	}
+	api.MessageRegister()
+	log.Printf("MessageRegister %+v", api.GetProcessor())
 }
 
 // @title 突突大挑战
@@ -47,6 +50,8 @@ func main() {
 	}
 
 	global.Logger.Infof("%s: ttdtz-server/%s", "eddycjy", "ttdtz-server")
+
+	//api.GetProcessor().MessageInfo[1001].Handler()
 
 	s.ListenAndServe()
 

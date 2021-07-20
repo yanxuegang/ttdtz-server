@@ -1,17 +1,19 @@
 package main
 
 import (
-	"crypto/md5"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	"io/ioutil"
 	models "juliang/model"
+	"juliang/tool"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"time"
+	"unsafe"
 
 	"github.com/jinzhu/gorm"
 	jsoniter "github.com/json-iterator/go"
@@ -42,6 +44,20 @@ import (
 
 var (
 	translationaUrl = "https://ad.oceanengine.com/track/activate/"
+	wxOrderQueryUrl = "https://api.mch.weixin.qq.com/pay/orderquery"
+	AppID           = "wx7756c4bb1e711e79"
+	AppSecret       = "d625e131569517cc8829cc99ed1154b9"
+	MchId           = "1541123451"
+)
+
+var (
+	DB    = &gorm.DB{}
+	chuan = "b0ce784009590860e2a62fa5deaed8f0"
+	kuai  = "6XD6wD7IYozyu8hHESWSRdriznEnvS6t"
+	you   = "4b178983b3ccd0cc7c2b9cf64fab714d"
+	csj   = 0
+	ks    = 1
+	ylh   = 2
 )
 
 //游戏api上报数据请求
@@ -82,50 +98,6 @@ type gameResponse struct {
 type TrRequestData struct {
 }
 
-//监测数据sqlmodel
-type Translations struct {
-	Id          int64     `gorm:"column:id" db:"id" json:"id" form:"id"`
-	Aid         string    `gorm:"column:aid" db:"aid" json:"aid" form:"aid"`
-	ConvertId   string    `gorm:"column:convert_id" db:"convert_id" json:"convert_id" form:"convert_id"`
-	RequestId   string    `gorm:"column:request_id" db:"request_id" json:"request_id" form:"request_id"`
-	Imei        string    `gorm:"column:imei" db:"imei" json:"imei" form:"imei"`
-	Idfa        string    `gorm:"column:idfa" db:"idfa" json:"idfa" form:"idfa"`
-	Androidid   string    `gorm:"column:androidid" db:"androidid" json:"androidid" form:"androidid"`
-	Oaid        string    `gorm:"column:oaid" db:"oaid" json:"oaid" form:"oaid"`
-	OaidMd5     string    `gorm:"column:oaid_md5" db:"oaid_md5" json:"oaid_md5" form:"oaid_md5"`
-	Os          int       `gorm:"column:os" db:"os" json:"os" form:"os"`
-	Mac         string    `gorm:"column:mac" db:"mac" json:"mac" form:"mac"`
-	Mac1        string    `gorm:"column:mac1" db:"mac1" json:"mac1" form:"mac1"`
-	Ip          string    `gorm:"column:ip" db:"ip" json:"ip" form:"ip"`
-	Ua          string    `gorm:"column:ua" db:"ua" json:"ua" form:"ua"`
-	Geo         string    `gorm:"column:geo" db:"geo" json:"geo" form:"geo"`
-	Ts          time.Time `gorm:"column:ts" db:"ts" json:"ts" form:"ts"`
-	CallbackUrl string    `gorm:"column:callback_url" db:"callback_url" json:"callback_url" form:"callback_url"`
-	Callback    string    `gorm:"column:callback" db:"callback" json:"callback" form:"callback"`
-	Model       string    `gorm:"column:model" db:"model" json:"model" form:"model"`
-	Status      int       `gorm:"column:status" db:"status" json:"status" form:"status"`
-}
-
-func (m *Translations) Create() error {
-	//todo redis save
-	return DB.Create(m).Error
-}
-
-func (m *Translations) Delete() error {
-	//todo redis save
-	return DB.Delete(m).Error
-}
-
-func (m *Translations) Update(attrs ...interface{}) error {
-	//todo redis save
-	rowsAffected := DB.Model(m).Update(attrs...).RowsAffected
-	if rowsAffected == 0 {
-		log.Println("[PLAYER][WARNING] No Content To Update.")
-		return nil
-	}
-	return nil
-}
-
 func listenAdHandler(w http.ResponseWriter, req *http.Request) {
 	log.Println("listenAdHandler req")
 	err := req.ParseForm()
@@ -156,7 +128,7 @@ func listenAdHandler(w http.ResponseWriter, req *http.Request) {
 	log.Println("translationa data : ", wxrespData)
 	//translation := new(Translations)
 	os, _ := strconv.Atoi(req.Form.Get("os"))
-	translation := Translations{
+	translation := models.Translations{
 		Imei: req.Form.Get("imei"),
 		Idfa: req.Form.Get("idfa"),
 		//Muid:    req.Form.Get("muid"),
@@ -169,7 +141,7 @@ func listenAdHandler(w http.ResponseWriter, req *http.Request) {
 		Mac:       req.Form.Get("mac"),
 		Mac1:      req.Form.Get("mac1"),
 		Ip:        req.Form.Get("ip"),
-		Ua:        req.Form.Get("ua"),
+		//Ua:        req.Form.Get("ua"),
 		// 	Model: req.Form.Get("model"),
 	}
 	//err = DBs["app_line"].Exec("INSERT INTO `translations` VALUES (?, ?, ?)", translation.Imei, translation.Idfa, "").Error
@@ -220,7 +192,7 @@ func gameServerHandler(w http.ResponseWriter, req *http.Request) {
 	oaid_md5 := req.Form.Get("OaidMd5")
 	w.Header().Set("content-type", "text/json")
 	var (
-		Translation = new(Translations)
+		Translation = new(models.Translations)
 	)
 	Translation.OaidMd5 = oaid_md5
 	log.Printf("oaid_md5 = %s, Translation.OaidMd5 = %s", oaid_md5, Translation.OaidMd5)
@@ -239,16 +211,16 @@ func gameServerHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if time.Now().Unix()-604800 > Translation.Ts.Unix() {
-		//DB.Where("oaid_md5 = ?", Translation.OaidMd5).Delete(Translations{})
-		// if err != nil {
-		// 	log.Println("gameServerHandler: ", err)
-		// }
-		log.Printf("check fail timeout md5 = %s", oaid_md5)
-		//msg, _ := json.Marshal(gameResponse{Code: 1, Msg: "timeout"})
-		//w.Write(msg)
-		return
-	}
+	//if time.Now().Unix()-604800 > Translation.Ts.Unix() {
+	//DB.Where("oaid_md5 = ?", Translation.OaidMd5).Delete(Translations{})
+	// if err != nil {
+	// 	log.Println("gameServerHandler: ", err)
+	// }
+	//log.Printf("check fail timeout md5 = %s", oaid_md5)
+	//msg, _ := json.Marshal(gameResponse{Code: 1, Msg: "timeout"})
+	//w.Write(msg)
+	//return
+	//}
 	//DB.Where("oaid_md5 = ?", Translation.OaidMd5).Delete(Translations{})
 	// err = Translation.Delete()
 	// if err != nil {
@@ -258,27 +230,6 @@ func gameServerHandler(w http.ResponseWriter, req *http.Request) {
 	msg, _ := json.Marshal(gameResponse{Code: 0, Msg: "success"})
 	w.Write(msg)
 	//w.Write([]byte("success"))
-}
-
-var (
-	DB    = &gorm.DB{}
-	chuan = "b4e2aa01a2d47c36deb2d24d8552acc8"
-	kuai  = "4b178983b3ccd0cc7c2b9cf64fab714d"
-	you   = "WKzX2uhtpDEIYyVixkHWhNpif3edFCpW"
-	csj   = 0
-	ks    = 1
-	ylh   = 2
-)
-
-func getMd5String1(str1, str2 string) string {
-	md5str := str1 + ":" + str2
-	m := md5.New()
-	_, err := io.WriteString(m, md5str)
-	if err != nil {
-		log.Fatal("getMd5String1 error ", err)
-	}
-	arr := m.Sum(nil)
-	return fmt.Sprintf("%x", arr)
 }
 
 func videoyouHandler(w http.ResponseWriter, req *http.Request) {
@@ -322,9 +273,9 @@ func do(req *http.Request, secKey string, Type int) (VideoResult, bool) {
 	var m string
 	switch Type {
 	case ylh:
-		m = getMd5String1(transId, secKey)
+		m = tool.GetMd5String1(transId, secKey)
 	default:
-		m = getMd5String1(secKey, transId)
+		m = tool.GetMd5String1(secKey, transId)
 	}
 
 	log.Printf("sign = %s, Md5 = %s", sign, m)
@@ -353,24 +304,110 @@ func videochuanHandler(w http.ResponseWriter, req *http.Request) {
 	//w.Write([]byte("videomonitoringHandler success"))
 }
 
+func wxpaynoticeHandler(w http.ResponseWriter, req *http.Request) {
+	log.Println("wxpaynoticeHandler req")
+	err := req.ParseForm()
+	if err != nil {
+		log.Fatal("parse form error ", err)
+	}
+	formData := make(map[string]interface{})
+	json.NewDecoder(req.Body).Decode(&formData)
+	log.Println(req.Form)
+	total_fee, _ := strconv.Atoi(req.Form.Get("total_fee"))
+	settlement_total_fee, _ := strconv.Atoi(req.Form.Get("settlement_total_fee"))
+	cash_fee, _ := strconv.Atoi(req.Form.Get("cash_fee"))
+	time_end, _ := time.Parse("2006-01-02", req.Form.Get("time_end"))
+	order := models.Orders{
+		Appid:              req.Form.Get("appid"),
+		MchId:              req.Form.Get("mch_id"),
+		Openid:             req.Form.Get("openid"),
+		TotalFee:           float64(total_fee),
+		SettlementTotalFee: settlement_total_fee,
+		FeeType:            req.Form.Get("fee_type"),
+		CashFee:            cash_fee,
+		TransactionId:      req.Form.Get("transaction_id"),
+		OutTradeNo:         req.Form.Get("out_trade_no"),
+		TimeEnd:            time_end,
+	}
+	if err = order.Create(); err != nil {
+		//if err != nil {
+		log.Println("Create order err: ", err)
+	}
+	w.Write([]byte("SUCCESS"))
+}
+
+func wxpaymentHandler(w http.ResponseWriter, req *http.Request) {
+	//check local mysql
+	var (
+		data = map[string]interface{}{
+			"appid":        AppID,
+			"mch_id":       MchId,
+			"out_trade_no": "",
+			"nonce_str":    tool.RandString(10),
+		}
+	)
+}
+
 func main() {
+	sendhttpserver()
 	var err error
 	DB, err = models.NewDBEngine()
 	if err != nil {
 		log.Fatal("NewDBEngine: ", err)
 	}
 	log.Printf("DBs init %+v", DB)
-
+	//
 	http.HandleFunc("/adcallback", listenAdHandler)
 	http.HandleFunc("/apicallback", gameServerHandler)
+	//
 	http.HandleFunc("/v1/chuan-notice", videochuanHandler)
 	http.HandleFunc("/v1/kuai-notice", videokuanHandler)
 	http.HandleFunc("/v1/you-notice", videoyouHandler)
-	http.ListenAndServeTLS(":8088", "server.crt",
-		"server.key", nil)
-	// err = http.ListenAndServe(":8000", nil)
-	// if err != nil {
-	// 	log.Fatal("ListenAndServe: ", err)
-	// 	return
-	// }
+	//
+	http.HandleFunc("/v1/wxpay-notice", wxpaynoticeHandler)
+	http.HandleFunc("/v1/wxpayment", wxpaymentHandler)
+	//http.ListenAndServeTLS(":8081", "server.crt",
+	//	"server.key", nil)
+	err = http.ListenAndServe(":8081", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+		return
+	}
+}
+
+func sendhttpserver() {
+	data := make(map[string]interface{})
+	params := make(map[string]interface{})
+	params["open_id"] = "1"
+	params["type"] = "1"
+	params["password"] = "1"
+	params["channel"] = "1"
+	data["cmd"] = 1000
+	data["params"] = params
+	bytesData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	reader := bytes.NewReader(bytesData)
+	url := "http://192.168.1.6:8000/api/v1/login"
+	request, err := http.NewRequest("POST", url, reader)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	request.Header.Set("Content-Type", "application/json;charset=UTF-8")
+	client := http.Client{}
+	resp, err := client.Do(request)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	respBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+	str := (*string)(unsafe.Pointer(&respBytes))
+	fmt.Println(*str)
 }

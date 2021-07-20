@@ -12,8 +12,10 @@ App:
 Wx:
   AppId: wx7756c4bb1e711e79
   AppSecret: d625e131569517cc8829cc99ed1154b9
+  MchId: 1541123451
+  WxPayChechUrl: https://api.mch.weixin.qq.com/pay/orderquery
   ApiPrefix: https://api.weixin.qq.com
-  AuthUrlFormat: "%s/sns/jscode2session?appid=%s&secret=%s&js_code=%s&grant_type=authorization_code"
+  AuthUrlFormat: "%s/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
   AccessTokenUrlFormat: "%s/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
 Database:
   DBConns:

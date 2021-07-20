@@ -1,6 +1,7 @@
 package app
 
 import (
+	"log"
 	"net/http"
 	"ttdtz-server/pkg/errcode"
 
@@ -18,6 +19,7 @@ func (r *Response) ToResponse(data interface{}) {
 	if data == nil {
 		data = gin.H{}
 	}
+	log.Printf("Response => %+v", data)
 	r.Ctx.JSON(http.StatusOK, data)
 }
 func (r *Response) ToErrorResponse(err *errcode.Error) {
