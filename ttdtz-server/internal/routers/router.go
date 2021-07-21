@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -52,6 +53,7 @@ func NewRouter() *gin.Engine {
 }
 
 func Router(c *gin.Context) {
+	context.WithValue(c.Request.Context(), "test", "yxg")
 	//formData := make(map[string]interface{})
 	//var bodyBytes []byte
 	respd := RequestInfo{}
@@ -89,7 +91,6 @@ func Cors() gin.HandlerFunc {
 			headerStr = "access-control-allow-origin, access-control-allow-headers"
 		}
 		if origin != "" {
-			//下面的都是乱添加的-_-~
 			// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Headers", headerStr)

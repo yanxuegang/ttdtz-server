@@ -34,6 +34,9 @@ type WxSettingS struct {
 	ApiPrefix            string
 	AuthUrlFormat        string
 	AccessTokenUrlFormat string
+	WxPay                string
+	Description          string
+	WxNotifyUrl          string
 }
 
 type DBConn struct {

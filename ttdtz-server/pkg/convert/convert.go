@@ -66,12 +66,11 @@ func GetWxpayMd5(data map[string]interface{}) string {
 	message := stringifyData(data)
 	message = message + "&key=" + global.GlobalConfig.Wx.AppSecret
 	log.Println("GetWxpayMd5", message)
-
 	m := md5.New()
 	_, err := io.WriteString(m, message)
 	if err != nil {
 		log.Fatal("getMd5String1 error ", err)
 	}
 	arr := m.Sum(nil)
-	return fmt.Sprintf("%x", arr)
+	return strings.ToTitle(fmt.Sprintf("%x", arr))
 }

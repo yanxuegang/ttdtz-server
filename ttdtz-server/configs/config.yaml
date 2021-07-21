@@ -13,10 +13,13 @@ Wx:
   AppId: wx7756c4bb1e711e79
   AppSecret: d625e131569517cc8829cc99ed1154b9
   MchId: 1541123451
-  WxPayChechUrl: https://api.mch.weixin.qq.com/pay/orderquery
+  WxPayChechUrl: https://api.mch.weixin.qq.com/mmpaymkttransfers/gettransferinfo
   ApiPrefix: https://api.weixin.qq.com
   AuthUrlFormat: "%s/sns/oauth2/access_token?appid=%s&secret=%s&code=%s&grant_type=authorization_code"
   AccessTokenUrlFormat: "%s/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s"
+  WxPay: https://api.mch.weixin.qq.com/mmpaymkttransfers/promotion/transfers
+  Description: ""
+  WxNotifyUrl: https://ssyzapi.com:8082/wxpay-notice
 Database:
   DBConns:
   - DBType: mysql 
